@@ -25,7 +25,8 @@
 
                 <div class="form-group">
                     <label for="ltv">LTV (%)</label>
-                    <input type="text" id="ltv" name="ltv" readonly>
+                    <input type="text" id="ltv" name="ltv" placeholder="Enter LTV percentage">
+                    <div class="error" id="ltvError"></div>
                 </div>
 
                 <div class="form-group">
@@ -103,26 +104,41 @@
             input.value = value;
         }
 
-        // Calculate LTV
-        function calculateLTV() {
-            const loanAmount = parseFloat(document.getElementById('loanAmount').value.replace(/,/g, '')) || 0;
+        // Calculate missing value (LTV or Loan Amount)
+        function calculateMissingValue() {
             const purchasePrice = parseFloat(document.getElementById('purchasePrice').value.replace(/,/g, '')) || 0;
-            
+            const loanAmount = document.getElementById('loanAmount').value;
+            const ltv = document.getElementById('ltv').value;
+
             if (purchasePrice > 0) {
-                const ltv = ((loanAmount / purchasePrice) * 100).toFixed(2);
-                document.getElementById('ltv').value = ltv;
+                if (loanAmount && !ltv) {
+                    // Calculate LTV if loan amount is provided
+                    const loanAmountNum = parseFloat(loanAmount.replace(/,/g, ''));
+                    const calculatedLTV = ((loanAmountNum / purchasePrice) * 100).toFixed(2);
+                    document.getElementById('ltv').value = calculatedLTV;
+                } else if (!loanAmount && ltv) {
+                    // Calculate loan amount if LTV is provided
+                    const calculatedLoanAmount = (purchasePrice * (parseFloat(ltv) / 100)).toFixed(2);
+                    document.getElementById('loanAmount').value = parseFloat(calculatedLoanAmount).toLocaleString();
+                }
             }
         }
 
-        // Add event listeners for currency formatting and LTV calculation
+        // Add event listeners for calculations
         document.getElementById('loanAmount').addEventListener('input', function() {
             formatCurrency(this);
-            calculateLTV();
+            document.getElementById('ltv').value = ''; // Clear LTV when loan amount changes
+            calculateMissingValue();
+        });
+
+        document.getElementById('ltv').addEventListener('input', function() {
+            document.getElementById('loanAmount').value = ''; // Clear loan amount when LTV changes
+            calculateMissingValue();
         });
 
         document.getElementById('purchasePrice').addEventListener('input', function() {
             formatCurrency(this);
-            calculateLTV();
+            calculateMissingValue();
         });
 
         // Form validation and submission
@@ -133,10 +149,26 @@
             // Clear previous errors
             document.querySelectorAll('.error').forEach(error => error.textContent = '');
 
-            // Validate Loan Amount
+            // Validate Purchase Price (always required)
+            const purchasePrice = document.getElementById('purchasePrice').value;
+            if (!purchasePrice) {
+                document.getElementById('purchasePriceError').textContent = 'Purchase price is required';
+                isValid = false;
+            }
+
+            // Validate that either Loan Amount OR LTV is provided (but not both)
             const loanAmount = document.getElementById('loanAmount').value;
-            if (!loanAmount) {
-                document.getElementById('loanAmountError').textContent = 'Loan amount is required';
+            const ltv = document.getElementById('ltv').value;
+            
+            if (!loanAmount && !ltv) {
+                document.getElementById('loanAmountError').textContent = 'Either Loan Amount or LTV is required';
+                document.getElementById('ltvError').textContent = 'Either Loan Amount or LTV is required';
+                isValid = false;
+            }
+            
+            if (loanAmount && ltv) {
+                document.getElementById('loanAmountError').textContent = 'Please provide either Loan Amount or LTV, not both';
+                document.getElementById('ltvError').textContent = 'Please provide either Loan Amount or LTV, not both';
                 isValid = false;
             }
 
