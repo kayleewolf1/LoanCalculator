@@ -58,18 +58,6 @@
 
             <button type="submit">Calculate</button>
         </form>
-
-        <div id="results">
-            <h2>Results:</h2>
-            <div class="results-grid">
-                <div class="result-item" id="resultLoanAmount"></div>
-                <div class="result-item" id="resultPurchasePrice"></div>
-                <div class="result-item" id="resultLTV"></div>
-                <div class="result-item" id="resultFICO"></div>
-                <div class="result-item" id="resultPropertyType"></div>
-                <div class="result-item" id="resultState"></div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -99,60 +87,54 @@
             stateSelect.appendChild(option);
         });
 
-        // Calculate missing values based on what's entered
-function calculateMissingValue() {
-    const purchasePrice = parseFloat(document.getElementById('purchasePrice').value.replace(/,/g, '')) || 0;
-    const loanAmount = document.getElementById('loanAmount').value;
-    const ltv = document.getElementById('ltv').value;
+        function calculateMissingValue() {
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value.replace(/,/g, '')) || 0;
+            const loanAmount = document.getElementById('loanAmount').value;
+            const ltv = document.getElementById('ltv').value;
 
-    if (purchasePrice > 0) {
-        if (loanAmount) {
-            // Calculate LTV whenever loan amount changes
-            const loanAmountNum = parseFloat(loanAmount.replace(/,/g, ''));
-            const calculatedLTV = ((loanAmountNum / purchasePrice) * 100).toFixed(2);
-            if (!document.getElementById('ltv').matches(':focus')) {
-                document.getElementById('ltv').value = calculatedLTV;
+            if (purchasePrice > 0) {
+                if (loanAmount) {
+                    const loanAmountNum = parseFloat(loanAmount.replace(/,/g, ''));
+                    const calculatedLTV = ((loanAmountNum / purchasePrice) * 100).toFixed(2);
+                    if (!document.getElementById('ltv').matches(':focus')) {
+                        document.getElementById('ltv').value = calculatedLTV;
+                    }
+                }
+                if (ltv) {
+                    const calculatedLoanAmount = (purchasePrice * (parseFloat(ltv) / 100)).toFixed(2);
+                    if (!document.getElementById('loanAmount').matches(':focus')) {
+                        document.getElementById('loanAmount').value = parseFloat(calculatedLoanAmount).toLocaleString();
+                    }
+                }
             }
         }
-        if (ltv) {
-            // Calculate loan amount whenever LTV changes
-            const calculatedLoanAmount = (purchasePrice * (parseFloat(ltv) / 100)).toFixed(2);
-            if (!document.getElementById('loanAmount').matches(':focus')) {
-                document.getElementById('loanAmount').value = parseFloat(calculatedLoanAmount).toLocaleString();
+
+        // Add event listeners
+        document.getElementById('loanAmount').addEventListener('input', function() {
+            formatCurrency(this);
+            if (document.getElementById('purchasePrice').value) {
+                calculateMissingValue();
             }
-        }
-    }
-}
+        });
 
-// Add event listeners
-document.getElementById('loanAmount').addEventListener('input', function() {
-    formatCurrency(this);
-    if (document.getElementById('purchasePrice').value) {
-        calculateMissingValue();
-    }
-});
+        document.getElementById('purchasePrice').addEventListener('input', function() {
+            formatCurrency(this);
+            calculateMissingValue();
+        });
 
-document.getElementById('purchasePrice').addEventListener('input', function() {
-    formatCurrency(this);
-    calculateMissingValue();
-});
+        document.getElementById('ltv').addEventListener('input', function() {
+            let value = this.value.replace(/[^\d.]/g, '');
+            const decimalPoints = value.match(/\./g);
+            if (decimalPoints && decimalPoints.length > 1) {
+                value = value.replace(/\./, '');
+            }
+            this.value = value;
+            
+            if (document.getElementById('purchasePrice').value) {
+                calculateMissingValue();
+            }
+        });
 
-document.getElementById('ltv').addEventListener('input', function() {
-    // Allow decimal points in LTV
-    let value = this.value.replace(/[^\d.]/g, '');
-    // Ensure only one decimal point
-    const decimalPoints = value.match(/\./g);
-    if (decimalPoints && decimalPoints.length > 1) {
-        value = value.replace(/\./, '');
-    }
-    this.value = value;
-    
-    if (document.getElementById('purchasePrice').value) {
-        calculateMissingValue();
-    }
-});
-
-        // Format currency inputs
         function formatCurrency(input) {
             let value = input.value.replace(/[^\d]/g, '');
             if (value.length > 0) {
@@ -161,41 +143,32 @@ document.getElementById('ltv').addEventListener('input', function() {
             input.value = value;
         }
 
-      
-
-        
-
-        // Form validation and submission
         document.getElementById('loanForm').addEventListener('submit', function(e) {
             e.preventDefault();
             let isValid = true;
             
-            // Clear previous errors
             document.querySelectorAll('.error').forEach(error => error.textContent = '');
 
-            // Get form values
             const values = {
                 purchasePrice: document.getElementById('purchasePrice').value,
                 loanAmount: document.getElementById('loanAmount').value,
                 ltv: document.getElementById('ltv').value,
                 fico: document.getElementById('fico').value,
-                state: document.getElementById('state').value
+                state: document.getElementById('state').value,
+                propertyType: document.getElementById('propertyType').value
             };
 
-            // Validate Purchase Price (required)
             if (!values.purchasePrice) {
                 document.getElementById('purchasePriceError').textContent = 'Purchase price is required';
                 isValid = false;
             }
 
-            // Validate that at least loan amount OR LTV is provided
             if (!values.loanAmount && !values.ltv) {
                 document.getElementById('loanAmountError').textContent = 'Either Loan Amount or LTV is required';
                 document.getElementById('ltvError').textContent = 'Either Loan Amount or LTV is required';
                 isValid = false;
             }
 
-            // Validate FICO
             if (!values.fico) {
                 document.getElementById('ficoError').textContent = 'FICO score is required';
                 isValid = false;
@@ -204,7 +177,6 @@ document.getElementById('ltv').addEventListener('input', function() {
                 isValid = false;
             }
 
-            // Validate State
             if (!values.state) {
                 document.getElementById('stateError').textContent = 'State is required';
                 isValid = false;
@@ -215,8 +187,9 @@ document.getElementById('ltv').addEventListener('input', function() {
                 const results = {
                     purchasePrice: purchasePrice,
                     fico: parseInt(values.fico),
-                    propertyType: document.getElementById('propertyType').value,
-                    state: values.state
+                    propertyType: values.propertyType,
+                    state: values.state,
+                    stateName: statesList[values.state]
                 };
 
                 if (values.loanAmount) {
@@ -226,7 +199,6 @@ document.getElementById('ltv').addEventListener('input', function() {
                     results.ltv = parseFloat(values.ltv);
                 }
 
-                // Calculate missing value if needed
                 if (!values.loanAmount && values.ltv) {
                     results.loanAmount = (purchasePrice * (parseFloat(values.ltv) / 100));
                 }
@@ -234,18 +206,8 @@ document.getElementById('ltv').addEventListener('input', function() {
                     results.ltv = ((results.loanAmount / purchasePrice) * 100).toFixed(2);
                 }
 
-                // Display results
-                document.getElementById('resultLoanAmount').textContent = `Loan Amount: $${results.loanAmount.toLocaleString()}`;
-                document.getElementById('resultPurchasePrice').textContent = `Purchase Price: $${results.purchasePrice.toLocaleString()}`;
-                document.getElementById('resultLTV').textContent = `LTV: ${results.ltv}%`;
-                document.getElementById('resultFICO').textContent = `FICO Score: ${results.fico}`;
-                document.getElementById('resultPropertyType').textContent = `Property Type: ${results.propertyType.split('-').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                ).join(' ')}`;
-                document.getElementById('resultState').textContent = `State: ${results.state}`;
-
-                // Show results section
-                document.getElementById('results').classList.add('show');
+                localStorage.setItem('loanResults', JSON.stringify(results));
+                window.location.href = 'results.html';
             }
         });
     </script>
