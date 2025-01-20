@@ -7,7 +7,6 @@ class PricingService {
       try {
         // Construct the file path relative to the current directory
         const filePath = new URL('fixedRates.csv', window.location.href).pathname;
-  
         // Fetch the CSV file from the server
         const response = await fetch(filePath);
         if (!response.ok) throw new Error('Failed to fetch the CSV file');
