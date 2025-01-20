@@ -82,20 +82,20 @@ select {
 
 input:focus, select:focus {
     outline: none;
-    border-color: #4A90E2;
+    border-color: black;
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
 }
 
 button {
-    background-color: #4A90E2;
+    background-color:grey;
     color: white;
-    padding: 16px;
+    padding: 10px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     width: 100%;
     font-size: 1.2em;
-    margin-top: 0;
+    margin-top: 10px;
     transition: background-color 0.2s;
 }
 
@@ -145,5 +145,43 @@ button:hover {
 
     body {
         padding: 10px;
+    }
+    .matching-loans-table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    .matching-loans-table, 
+    .matching-loans-table th, 
+    .matching-loans-table td {
+        border: 1px solid black;
+    }
+    
+    .matching-loans-table th {
+        padding: 8px;
+        background-color: #f2f2f2;
+    }
+    
+    .matching-loans-table th.price-header {
+        background-color: #ffb6b6; /* Light red for LO Price columns */
+    }
+    
+    .matching-loans-table th.strike-header {
+        background-color: #e6e6e6; /* Light gray for Strike Price section */
+    }
+    
+    .matching-loans-table td {
+        padding: 8px;
+        text-align: center;
+    }
+    
+    .header-row {
+        border-bottom: 2px solid black;
+    }
+    
+    .program-row {
+        border-bottom: 2px solid black;
+        background-color: #f9f9f9;
     }
 }

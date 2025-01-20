@@ -1,322 +1,672 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Loan Calculator</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head
+  >n
+  <body>
     <div class="container">
-        <h1>Loan Calculator</h1>
-        <form id="loanForm">
-            <div class="form-group">
-                <label for="loanAmount">Loan Amount ($)</label>
-                <input type="text" id="loanAmount" name="loanAmount" placeholder="Enter loan amount">
-                <div class="error" id="loanAmountError"></div>
-            </div>
+      <h1>Loan Calculator</h1>
+      <form id="loanForm">
+        <div class="form-group">
+          <label for="purchasePrice">Purchase Price ($)</label>
+          <input
+            type="text"
+            id="purchasePrice"
+            name="purchasePrice"
+            placeholder="Enter purchase price"
+          />
+          <div class="error" id="purchasePriceError"></div>
+        </div>
 
-            <div class="form-group">
-                <label for="purchasePrice">Purchase Price ($)</label>
-                <input type="text" id="purchasePrice" name="purchasePrice" placeholder="Enter purchase price">
-                <div class="error" id="purchasePriceError"></div>
-            </div>
+        <div class="form-group">
+          <label for="loanAmount">Loan Amount ($)</label>
+          <input
+            type="text"
+            id="loanAmount"
+            name="loanAmount"
+            placeholder="Enter loan amount"
+          />
+          <div class="error" id="loanAmountError"></div>
+        </div>
 
-            <div class="form-group">
-                <label for="ltv">LTV (%)</label>
-                <input type="text" id="ltv" name="ltv" placeholder="Enter LTV">
-                <div class="error" id="ltvError"></div>
-            </div>
+        <div class="form-group">
+          <label for="ltv">LTV (%)</label>
+          <input type="text" id="ltv" name="ltv" placeholder="Enter LTV" />
+          <div class="error" id="ltvError"></div>
+        </div>
 
-            <div class="form-group">
-                <label for="fico">FICO Score</label>
-                <input type="number" id="fico" name="fico" placeholder="Enter FICO score" min="300" max="850">
-                <div class="error" id="ficoError"></div>
-            </div>
+        <div class="form-group">
+          <label for="fico">FICO Score</label>
+          <input
+            type="number"
+            id="fico"
+            name="fico"
+            placeholder="Enter FICO score"
+            min="300"
+            max="850"
+          />
+          <div class="error" id="ficoError"></div>
+        </div>
 
-            <div class="form-group">
-                <label for="propertyType">Property Type</label>
-                <select id="propertyType" name="propertyType">
-                    <option value="single-family">Single Family</option>
-                    <option value="multi-family">Multi Family</option>
-                    <option value="condo">Condo</option>
-                    <option value="townhouse">Townhouse</option>
-                    <option value="manufactured">Manufactured</option>
-                    <option value="commercial">Commercial</option>
-                </select>
-            </div>
+        <div class="form-group">
+          <label for="propertyType">Property Type</label>
+          <select id="propertyType" name="propertyType">
+            <option value="single-family">Single Family</option>
+            <option value="multi-family">Multi Family</option>
+            <option value="condo">Condo</option>
+            <option value="townhouse">Townhouse</option>
+            <option value="manufactured">Manufactured</option>
+            <option value="commercial">Commercial</option>
+          </select>
+        </div>
 
-            <div class="form-group">
-                <label for="state">State</label>
-                <select id="state" name="state">
-                    <option value="">Select a state</option>
-                </select>
-                <div class="error" id="stateError"></div>
-            </div>
+        <div class="form-group">
+          <label for="state">State</label>
+          <select id="state" name="state">
+            <option value="">Select a state</option>
+          </select>
+          <div class="error" id="stateError"></div>
+        </div>
 
-          
-            <div class="form-group">
-                <label for="loanType">Loan Type</label>
-                <input type="text" id="loanType" name="loanType" placeholder="Enter loan type (e.g., '15-Year Fixed Rate')">
-                <div class="error" id="loanTypeError"></div>
-            </div>
+        <!-- <div class="form-group">
+          <label for="loanType">Loan Type</label>
+          <input
+            type="text"
+            id="loanType"
+            name="loanType"
+            placeholder="Enter loan type (e.g., '15-Year Fixed Rate')"
+          />
+          <div class="error" id="loanTypeError"></div>
+        </div> -->
 
-            <button type="submit">Calculate</button>
-            <button type="button" id="searchButton">Search</button>
+        <button type="submit" id="submit">Get Pricing</button>
+        <!-- <button type="button" id="searchButton">Search</button> -->
 
-            <div id="matchingLoansTable" style="display: none;">
-                <h2>Matching Loan Types:</h2>
-                <div class="results-grid">
-                    <div class="result-item" id="matchingLoanTypes"></div>
-                </div>
-            </div>
+        <div id="matchingLoansTable" style="display: none">
+          <h2>Matching Loan Types:</h2>
+          <div id="matchingLoanTypes"></div>
+        </div>
 
-            <div id="results" style="display: none;">
-                <h2>Results:</h2>
-                <div class="results-grid">
-                    <div class="result-item" id="resultLoanAmount"></div>
-                    <div class="result-item" id="resultPurchasePrice"></div>
-                    <div class="result-item" id="resultLTV"></div>
-                    <div class="result-item" id="resultFICO"></div>
-                    <div class="result-item" id="resultPropertyType"></div>
-                    <div class="result-item" id="resultState"></div>
-                </div>
-            </div>
-        </form>
+        <div id="results" style="display: none">
+          <h2>Results:</h2>
+          <div class="results-grid">
+            <div class="result-item" id="resultLoanAmount"></div>
+            <div class="result-item" id="resultPurchasePrice"></div>
+            <div class="result-item" id="resultLTV"></div>
+            <div class="result-item" id="resultFICO"></div>
+            <div class="result-item" id="resultPropertyType"></div>
+            <div class="result-item" id="resultState"></div>
+          </div>
+        </div>
+      </form>
     </div>
 
-
     <script type="module">
-        import PricingService from './pricingService.js';
+      import PricingService from "./pricingService.js";
+      const loanProgram = "30-Year Fixed Rate";
+      // Initialize the PricingService
+      const pricingService = PricingService;
 
-        // Initialize the PricingService
-        const pricingService = PricingService;
+      // Load the pricing data when the page is loaded
+      async function initializePricingService() {
+        try {
+          await pricingService.loadLocalData();
+          console.log(
+            "Pricing data loaded successfully:",
+            pricingService.localData
+          );
+        } catch (error) {
+          console.error("Error loading pricing data:", error);
+        }
+      }
 
-        // Load the pricing data when the page is loaded
-        async function initializePricingService() {
-            try {
-                await pricingService.loadLocalData();
-                console.log('Pricing data loaded successfully:', pricingService.localData);
-            } catch (error) {
-                console.error('Error loading pricing data:', error);
+      // Call the initialization function
+      initializePricingService();
+
+      // List of US states with full names
+      const statesList = {
+        AL: "Alabama",
+        AK: "Alaska",
+        AZ: "Arizona",
+        AR: "Arkansas",
+        CA: "California",
+        CO: "Colorado",
+        CT: "Connecticut",
+        DE: "Delaware",
+        FL: "Florida",
+        GA: "Georgia",
+        HI: "Hawaii",
+        ID: "Idaho",
+        IL: "Illinois",
+        IN: "Indiana",
+        IA: "Iowa",
+        KS: "Kansas",
+        KY: "Kentucky",
+        LA: "Louisiana",
+        ME: "Maine",
+        MD: "Maryland",
+        MA: "Massachusetts",
+        MI: "Michigan",
+        MN: "Minnesota",
+        MS: "Mississippi",
+        MO: "Missouri",
+        MT: "Montana",
+        NE: "Nebraska",
+        NV: "Nevada",
+        NH: "New Hampshire",
+        NJ: "New Jersey",
+        NM: "New Mexico",
+        NY: "New York",
+        NC: "North Carolina",
+        ND: "North Dakota",
+        OH: "Ohio",
+        OK: "Oklahoma",
+        OR: "Oregon",
+        PA: "Pennsylvania",
+        RI: "Rhode Island",
+        SC: "South Carolina",
+        SD: "South Dakota",
+        TN: "Tennessee",
+        TX: "Texas",
+        UT: "Utah",
+        VT: "Vermont",
+        VA: "Virginia",
+        WA: "Washington",
+        WV: "West Virginia",
+        WI: "Wisconsin",
+        WY: "Wyoming",
+      };
+
+      // Populate states dropdown
+      const stateSelect = document.getElementById("state");
+      Object.entries(statesList).forEach(([abbr, name]) => {
+        const option = document.createElement("option");
+        option.value = abbr;
+        option.textContent = `${abbr} - ${name}`;
+        stateSelect.appendChild(option);
+      });
+
+      function calculateLoanAmount() {
+        const purchasePrice =
+          parseFloat(
+            document.getElementById("purchasePrice").value.replace(/,/g, "")
+          ) || 0;
+        const loanAmount =
+          parseFloat(
+            document.getElementById("loanAmount").value.replace(/,/g, "")
+          ) || 0;
+        const ltv =
+          parseFloat(document.getElementById("ltv").value.replace(/,/g, "")) ||
+          0;
+
+        if (purchasePrice > 0) {
+          if (ltv) {
+            // Calculate loan amount whenever LTV changes
+            const calculatedLoanAmount = (
+              purchasePrice *
+              (parseFloat(ltv) / 100)
+            ).toFixed(2);
+            if (!document.getElementById("loanAmount").matches(":focus")) {
+              document.getElementById("loanAmount").value =
+                parseFloat(calculatedLoanAmount).toLocaleString();
             }
+          }
+        }
+      }
+
+      function calculateltv() {
+        const purchasePrice =
+          parseFloat(
+            document.getElementById("purchasePrice").value.replace(/,/g, "")
+          ) || 0;
+        const loanAmount =
+          parseFloat(
+            document.getElementById("loanAmount").value.replace(/,/g, "")
+          ) || 0;
+        var calculatedLTV = "";
+
+        if (purchasePrice !== 0 && loanAmount !== 0) {
+          calculatedLTV = ((loanAmount / purchasePrice) * 100).toFixed(2);
         }
 
-        // Call the initialization function
-        initializePricingService();
+        document.getElementById("ltv").value = calculatedLTV;
+      }
 
-
-
-        // List of US states with full names
-        const statesList = {
-            'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
-            'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
-            'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
-            'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
-            'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
-            'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
-            'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
-            'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
-            'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
-            'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
-            'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
-            'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
-            'WI': 'Wisconsin', 'WY': 'Wyoming'
-        };
-
-        // Populate states dropdown
-        const stateSelect = document.getElementById('state');
-        Object.entries(statesList).forEach(([abbr, name]) => {
-            const option = document.createElement('option');
-            option.value = abbr;
-            option.textContent = `${abbr} - ${name}`;
-            stateSelect.appendChild(option);
+      // Add event listeners
+      document
+        .getElementById("loanAmount")
+        .addEventListener("input", function () {
+          formatCurrency(this);
+          console.log("loan amount event listener - input ");
+          calculateltv();
         });
 
-        
+      document
+        .getElementById("purchasePrice")
+        .addEventListener("input", function () {
+          formatCurrency(this);
+          console.log("purchase price event listener - input ");
+          calculateltv();
+        });
 
-        function calculateLoanAmount() {
-            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value.replace(/,/g, '')) || 0;
-            const loanAmount = parseFloat(document.getElementById('loanAmount').value.replace(/,/g, '')) || 0;
-            const ltv = parseFloat(document.getElementById('ltv').value.replace(/,/g, '')) || 0;
-
-            if (purchasePrice > 0) {
-                if (ltv) {
-                    // Calculate loan amount whenever LTV changes
-                    const calculatedLoanAmount = (purchasePrice * (parseFloat(ltv) / 100)).toFixed(2);
-                    if (!document.getElementById('loanAmount').matches(':focus')) {
-                        document.getElementById('loanAmount').value = parseFloat(calculatedLoanAmount).toLocaleString();
-                    }
-                }
-            }
+      document.getElementById("ltv").addEventListener("input", function () {
+        let value = this.value.replace(/[^\d.]/g, "");
+        const decimalPoints = value.match(/\./g);
+        if (decimalPoints && decimalPoints.length > 1) {
+          value = value.replace(/\./, "");
         }
+        this.value = value;
 
-        function calculateltv() {
-            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value.replace(/,/g, '')) || 0;
-            const loanAmount = parseFloat(document.getElementById('loanAmount').value.replace(/,/g, '')) || 0;
-            var calculatedLTV = "";
-
-            if(purchasePrice !== 0 && loanAmount !== 0) {
-                calculatedLTV = ((loanAmount / purchasePrice) * 100).toFixed(2);
-            }
-            
-            document.getElementById('ltv').value = calculatedLTV;
+        if (document.getElementById("purchasePrice").value) {
+          calculateLoanAmount();
         }
+      });
 
-        // Add event listeners
-        document.getElementById('loanAmount').addEventListener('input', function() {
-            formatCurrency(this);
-            console.log("loan amount event listener - input ");
-            calculateltv();
-        });
-
-        document.getElementById('purchasePrice').addEventListener('input', function() {
-            formatCurrency(this);
-            console.log("purchase price event listener - input ");
-            calculateltv();
-        });
-
-        document.getElementById('ltv').addEventListener('input', function() {
-            let value = this.value.replace(/[^\d.]/g, '');
-            const decimalPoints = value.match(/\./g);
-            if (decimalPoints && decimalPoints.length > 1) {
-                value = value.replace(/\./, '');
-            }
-            this.value = value;
-            
-            if (document.getElementById('purchasePrice').value) {
-                calculateLoanAmount();
-            }
-        });
-
-        function formatCurrency(input) {
-            let value = input.value.replace(/[^\d]/g, '');
-            if (value.length > 0) {
-                value = parseInt(value).toLocaleString();
-            }
-            input.value = value;
+      function formatCurrency(input) {
+        let value = input.value.replace(/[^\d]/g, "");
+        if (value.length > 0) {
+          value = parseInt(value).toLocaleString();
         }
+        input.value = value;
+      }
 
-        // Form validation and submission
-        document.getElementById('loanForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            let isValid = true;
-            
-            // Clear previous errors
-            document.querySelectorAll('.error').forEach(error => error.textContent = '');
+      // Form validation and submission
+      document
+        .getElementById("loanForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          let isValid = true;
 
-            // Get form values
-            const values = {
-                purchasePrice: document.getElementById('purchasePrice').value,
-                loanAmount: document.getElementById('loanAmount').value,
-                ltv: document.getElementById('ltv').value,
-                fico: document.getElementById('fico').value,
-                state: document.getElementById('state').value
+          // Clear previous errors
+          document
+            .querySelectorAll(".error")
+            .forEach((error) => (error.textContent = ""));
+
+          // Get form values
+          const values = {
+            purchasePrice: document.getElementById("purchasePrice").value,
+            loanAmount: document.getElementById("loanAmount").value,
+            ltv: document.getElementById("ltv").value,
+            fico: document.getElementById("fico").value,
+            state: document.getElementById("state").value,
+          };
+
+          // Validate Purchase Price (required)
+          if (!values.purchasePrice) {
+            document.getElementById("purchasePriceError").textContent =
+              "Purchase price is required";
+            isValid = false;
+          }
+
+          // Validate that at least loan amount OR LTV is provided
+          if (!values.loanAmount && !values.ltv) {
+            document.getElementById("loanAmountError").textContent =
+              "Either Loan Amount or LTV is required";
+            document.getElementById("ltvError").textContent =
+              "Either Loan Amount or LTV is required";
+            isValid = false;
+          }
+
+          // Validate FICO
+          if (!values.fico) {
+            document.getElementById("ficoError").textContent =
+              "FICO score is required";
+            isValid = false;
+          } else if (
+            parseInt(values.fico) < 300 ||
+            parseInt(values.fico) > 850
+          ) {
+            document.getElementById("ficoError").textContent =
+              "FICO score must be between 300 and 850";
+            isValid = false;
+          }
+
+          // Validate State
+          if (!values.state) {
+            document.getElementById("stateError").textContent =
+              "State is required";
+            isValid = false;
+          }
+
+          if (isValid) {
+            const purchasePrice = parseFloat(
+              values.purchasePrice.replace(/,/g, "")
+            );
+            const results = {
+              purchasePrice: purchasePrice,
+              fico: parseInt(values.fico),
+              propertyType: document.getElementById("propertyType").value,
+              state: values.state,
             };
 
-            // Validate Purchase Price (required)
-            if (!values.purchasePrice) {
-                document.getElementById('purchasePriceError').textContent = 'Purchase price is required';
-                isValid = false;
+            if (values.loanAmount) {
+              results.loanAmount = parseFloat(
+                values.loanAmount.replace(/,/g, "")
+              );
+            }
+            if (values.ltv) {
+              results.ltv = parseFloat(values.ltv);
             }
 
-            // Validate that at least loan amount OR LTV is provided
-            if (!values.loanAmount && !values.ltv) {
-                document.getElementById('loanAmountError').textContent = 'Either Loan Amount or LTV is required';
-                document.getElementById('ltvError').textContent = 'Either Loan Amount or LTV is required';
-                isValid = false;
+            // Calculate missing value if needed
+            if (!values.loanAmount && values.ltv) {
+              results.loanAmount =
+                purchasePrice * (parseFloat(values.ltv) / 100);
+            }
+            if (!values.ltv && values.loanAmount) {
+              results.ltv = (
+                (results.loanAmount / purchasePrice) *
+                100
+              ).toFixed(2);
             }
 
-            // Validate FICO
-            if (!values.fico) {
-                document.getElementById('ficoError').textContent = 'FICO score is required';
-                isValid = false;
-            } else if (parseInt(values.fico) < 300 || parseInt(values.fico) > 850) {
-                document.getElementById('ficoError').textContent = 'FICO score must be between 300 and 850';
-                isValid = false;
-            }
+            // Display results
+            document.getElementById(
+              "resultLoanAmount"
+            ).textContent = `Loan Amount: $${results.loanAmount.toLocaleString()}`;
+            document.getElementById(
+              "resultPurchasePrice"
+            ).textContent = `Purchase Price: $${results.purchasePrice.toLocaleString()}`;
+            document.getElementById(
+              "resultLTV"
+            ).textContent = `LTV: ${results.ltv}%`;
+            document.getElementById(
+              "resultFICO"
+            ).textContent = `FICO Score: ${results.fico}`;
+            document.getElementById(
+              "resultPropertyType"
+            ).textContent = `Property Type: ${results.propertyType
+              .split("-")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")}`;
+            document.getElementById(
+              "resultState"
+            ).textContent = `State: ${results.state}`;
 
-            // Validate State
-            if (!values.state) {
-                document.getElementById('stateError').textContent = 'State is required';
-                isValid = false;
-            }
-
-            if (isValid) {
-                const purchasePrice = parseFloat(values.purchasePrice.replace(/,/g, ''));
-                const results = {
-                    purchasePrice: purchasePrice,
-                    fico: parseInt(values.fico),
-                    propertyType: document.getElementById('propertyType').value,
-                    state: values.state
-                };
-
-                if (values.loanAmount) {
-                    results.loanAmount = parseFloat(values.loanAmount.replace(/,/g, ''));
-                }
-                if (values.ltv) {
-                    results.ltv = parseFloat(values.ltv);
-                }
-
-                // Calculate missing value if needed
-                if (!values.loanAmount && values.ltv) {
-                    results.loanAmount = (purchasePrice * (parseFloat(values.ltv) / 100));
-                }
-                if (!values.ltv && values.loanAmount) {
-                    results.ltv = ((results.loanAmount / purchasePrice) * 100).toFixed(2);
-                }
-
-                // Display results
-                document.getElementById('resultLoanAmount').textContent = `Loan Amount: $${results.loanAmount.toLocaleString()}`;
-                document.getElementById('resultPurchasePrice').textContent = `Purchase Price: $${results.purchasePrice.toLocaleString()}`;
-                document.getElementById('resultLTV').textContent = `LTV: ${results.ltv}%`;
-                document.getElementById('resultFICO').textContent = `FICO Score: ${results.fico}`;
-                document.getElementById('resultPropertyType').textContent = `Property Type: ${results.propertyType.split('-').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                ).join(' ')}`;
-                document.getElementById('resultState').textContent = `State: ${results.state}`;
-
-                // Show results section
-                document.getElementById('results').classList.add('show');
-            }
+            // Show results section
+            document.getElementById("results").classList.add("show");
+          }
         });
 
-        document.getElementById('searchButton').addEventListener('click', displayMatchingLoans);
+      document
+        .getElementById("submit")
+        .addEventListener("click", displayPricing);
 
+      async function displayMatchingLoans() {
+        const loanTypeInput = document.getElementById("loanType");
+        const matchingLoanTypesDiv =
+          document.getElementById("matchingLoanTypes");
+        const loanType = loanTypeInput.value.trim().toLowerCase();
 
-        
-        async function displayMatchingLoans() {
-  const loanTypeInput = document.getElementById('loanType');
-  const matchingLoanTypesInput = document.getElementById('matchingLoanTypes');
-  const loanType = loanTypeInput.value.trim();
+        try {
+          await PricingService.loadLocalData();
+          const matchingLoans = PricingService.localData.filter((loan) =>
+            loan.Product.toLowerCase().includes(loanType)
+          );
 
-  try {
-    // Load the pricing data from PricingService
-    await PricingService.loadLocalData();
+          if (matchingLoans.length > 0) {
+            // Create table HTML
+            let tableHTML = `
+                <table class="matching-loans-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Pass-Through Rate</th>
+                            <th>15 Day Price</th>
+                            <th>30 Day Price</th>
+                            <th>45 Day Price</th>
+                            <th>60 Day Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
 
-    // Find the matching loan types
-    const matchingLoans = PricingService.localData.filter(loan => {
-      return loan.Product.startsWith(loanType);
-    });
+            // Add each matching loan as a row
+            matchingLoans.forEach((loan) => {
+              tableHTML += `
+                    <tr>
+                        <td>${loan.Product}</td>
+                        <td>${loan["Pass-Through Rate"]}</td>
+                        <td>${loan["15 Day Price"]}</td>
+                        <td>${loan["30 Day Price"]}</td>
+                        <td>${loan["45 Day Price"]}</td>
+                        <td>${loan["60 Day Price"]}</td>
+                    </tr>
+                `;
+            });
 
-    // Display the matching loan types
-    if (matchingLoans.length > 0) {
-      const matchingLoanTypesText = matchingLoans.map(loan => loan.Product).join(', ');
-      matchingLoanTypesInput.textContent = matchingLoanTypesText;
-    } else {
-      matchingLoanTypesInput.textContent = 'No matching loan types found.';
-    }
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
 
-    // Show the matching loans table
-    document.getElementById('matchingLoansTable').style.display = 'block';
-  } catch (error) {
-    console.error('Error loading pricing data:', error);
-  }
-}
+            matchingLoanTypesDiv.innerHTML = tableHTML;
+          } else {
+            matchingLoanTypesDiv.innerHTML =
+              "<p>No matching loan types found.</p>";
+          }
+
+          document.getElementById("matchingLoansTable").style.display = "block";
+        } catch (error) {
+          console.error("Error loading pricing data:", error);
+          matchingLoanTypesDiv.innerHTML = "<p>Error loading loan data.</p>";
+        }
+      }
+
+      async function normalizePrice() {
+        // Constants for price adjustments
+        const addRate = 0.25;
+        const servicingSpread = 1.25;
+        const fmSpread = 3;
+        const maxPrice = 100;
+
+        try {
+          // Load and create a deep copy of the pricing data
+          await PricingService.loadLocalData();
+          const normalizedData = JSON.parse(
+            JSON.stringify(PricingService.localData)
+          );
+
+          // Process each loan in the data
+          normalizedData.forEach((loan) => {
+            // Add rate adjustment to pass-through rate
+            if (loan["Pass-Through Rate"]) {
+              loan["Pass-Through Rate"] =
+                parseFloat(loan["Pass-Through Rate"]) + addRate;
+            }
+
+            // Add servicing spread and subtract FM spread from prices
+            [
+              "15 Day Price",
+              "30 Day Price",
+              "45 Day Price",
+              "60 Day Price",
+            ].forEach((priceField) => {
+              if (loan[priceField]) {
+                // Add servicing spread and subtract FM spread
+                let adjustedPrice =
+                  parseFloat(loan[priceField]) + servicingSpread - fmSpread;
+
+                // Cap the price at maxPrice
+                loan[priceField] = adjustedPrice;
+              }
+            });
+          });
+
+          return normalizedData;
+        } catch (error) {
+          console.error("Error normalizing prices:", error);
+          throw error;
+        }
+      }
+
+      async function displayPricing() {
+        const maxPrice = 100;
+        const rateRange = 2;
+        const loanProgram = "30-Year Fixed Rate";
+
+        try {
+          const normalizedData = await normalizePrice();
+          const matchingLoanTypesDiv =
+            document.getElementById("matchingLoanTypes");
+          const loanAmount =
+            parseFloat(
+              document.getElementById("loanAmount").value.replace(/,/g, "")
+            ) || 0;
+          const purchasePrice =
+            parseFloat(
+              document.getElementById("purchasePrice").value.replace(/,/g, "")
+            ) || 0;
+
+          if (normalizedData && normalizedData.length > 0) {
+            const programFilteredData = normalizedData.filter(
+              (loan) => loan.Product === loanProgram
+            );
+
+            const referenceItem = programFilteredData.reduce(
+              (closest, current) => {
+                if (isNaN(current["30 Day Price"])) {
+                  return closest;
+                }
+
+                if (!closest || isNaN(closest["30 Day Price"])) {
+                  return current;
+                }
+
+                const currentDiff = Math.abs(
+                  maxPrice - parseFloat(current["30 Day Price"])
+                );
+                const closestDiff = Math.abs(
+                  maxPrice - parseFloat(closest["30 Day Price"])
+                );
+                return currentDiff < closestDiff ? current : closest;
+              },
+              programFilteredData[0]
+            );
+
+            const referenceRate = parseFloat(
+              referenceItem["Pass-Through Rate"]
+            );
+            const minRate = referenceRate - rateRange;
+
+            const filteredLoans = programFilteredData.filter((loan) => {
+              const loanRate = parseFloat(loan["Pass-Through Rate"]);
+              return loanRate >= minRate && loanRate <= referenceRate;
+            });
+
+            filteredLoans.sort(
+              (a, b) =>
+                parseFloat(a["Pass-Through Rate"]) -
+                parseFloat(b["Pass-Through Rate"])
+            );
+
+            function roundToNearestEighth(number) {
+              return Math.round(number * 8) / 8;
+            }
+
+            function formatRate(rate) {
+              const parsedRate = parseFloat(rate);
+              // Check if the rate is a whole number
+              if (parsedRate % 1 === 0) {
+                return (parsedRate - 0.01).toFixed(3);
+              }
+              return parsedRate.toFixed(3);
+            }
+
+            let tableHTML = `
+    <div class="program-row" style="border: 1px solid black; padding: 8px; margin-bottom: 10px;">
+        <strong>Program:</strong> ${loanProgram}
+    </div>
+    <table style="border-collapse: collapse; width: 100%;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid black; padding: 8px;" colspan="2">Rate</th>
+                <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6;" colspan="2">LO Price</th>
+                <th style="border: 1px solid black; padding: 8px; background-color: #e6e6e6;" colspan="3">Strike Price: 100</th>
+            </tr>
+            <tr>
+                <th style="border: 1px solid black; padding: 8px;">Rate</th>
+                <th style="border: 1px solid black; padding: 8px;">Rate</th>
+                <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6;">15</th>
+                <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6;">30</th>
+                <th style="border: 1px solid black; padding: 8px;">Points</th>
+                <th style="border: 1px solid black; padding: 8px;">$ Cost</th>
+                <th style="border: 1px solid black; padding: 8px;">% of Purchase Price</th>
+            </tr>
+        </thead>
+        <tbody>
+`;
+
+            filteredLoans.forEach((loan) => {
+              const price15Day = roundToNearestEighth(
+                parseFloat(loan["15 Day Price"])
+              );
+              const price30Day = roundToNearestEighth(
+                parseFloat(loan["30 Day Price"])
+              );
+              const percentCost = (100 - price30Day).toFixed(3);
+              const dollarCost = Math.round((percentCost / 100) * loanAmount);
+              const percentOfPurchase = purchasePrice
+                ? Math.round((dollarCost / purchasePrice) * 100)
+                : 0;
+
+              tableHTML += `
+        <tr>
+            <td style="border: 1px solid black; padding: 8px;">${
+              loan.Product
+            }</td>
+            <td style="border: 1px solid black; padding: 8px;">${formatRate(
+              loan["Pass-Through Rate"]
+            )}</td>
+            <td style="border: 1px solid black; padding: 8px;">${price15Day.toFixed(
+              3
+            )}</td>
+            <td style="border: 1px solid black; padding: 8px;">${price30Day.toFixed(
+              3
+            )}</td>
+            <td style="border: 1px solid black; padding: 8px;">${percentCost}</td>
+            <td style="border: 1px solid black; padding: 8px;">$${dollarCost.toLocaleString()}</td>
+            <td style="border: 1px solid black; padding: 8px;">${percentOfPurchase}%</td>
+        </tr>
+    `;
+            });
+
+            tableHTML += `
+        </tbody>
+    </table>
+`;
+
+            tableHTML += `
+                    </tbody>
+                </table>
+                <div class="reference-info" style="margin-top: 20px; padding: 10px;">
+                    <p style="margin: 5px 0;">Loan Program: ${loanProgram}</p>
+                    <p style="margin: 5px 0;">Reference Rate: ${formatRate(
+                      referenceRate
+                    )}</p>
+                    <p style="margin: 5px 0;">Showing rates between: ${minRate.toFixed(
+                      3
+                    )} and ${formatRate(referenceRate)}</p>
+                </div>
+            `;
+
+            matchingLoanTypesDiv.innerHTML = tableHTML;
+          } else {
+            matchingLoanTypesDiv.innerHTML = "<p>No matching loans found.</p>";
+          }
+
+          document.getElementById("matchingLoansTable").style.display = "block";
+        } catch (error) {
+          console.error("Error displaying pricing:", error);
+          document.getElementById("matchingLoanTypes").innerHTML =
+            "<p>Error loading pricing data.</p>";
+        }
+      }
     </script>
     <script type="module" src="pricingService.js"></script>
-
-</body>
+  </body>
 </html>
