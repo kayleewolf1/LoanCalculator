@@ -102,19 +102,19 @@
         // Calculate missing values based on what's entered
 function calculateMissingValue() {
     const purchasePrice = parseFloat(document.getElementById('purchasePrice').value.replace(/,/g, '')) || 0;
-    const loanAmount = document.getElementById('loanAmount').value;
-    const ltv = document.getElementById('ltv').value;
+    const loanAmount = parseFloat(document.getElementById('loanAmount').value.replace(/,/g, '')) || 0;
+    const ltv = dparseFloat(document.getElementById('ltv').value.replace(/,/g, '')) || 0;
 
     if (purchasePrice > 0) {
         if (loanAmount) {
             // Calculate LTV whenever loan amount changes
-            const loanAmountNum = parseFloat(loanAmount.replace(/,/g, ''));
+            const loanAmountNum = loanAmount;
             const calculatedLTV = ((loanAmountNum / purchasePrice) * 100).toFixed(2);
             if (!document.getElementById('ltv').matches(':focus')) {
                 document.getElementById('ltv').value = calculatedLTV;
             }
         }
-        if (ltv) {
+        if (ltv ) {
             // Calculate loan amount whenever LTV changes
             const calculatedLoanAmount = (purchasePrice * (parseFloat(ltv) / 100)).toFixed(2);
             if (!document.getElementById('loanAmount').matches(':focus')) {
@@ -128,12 +128,15 @@ function calculateMissingValue() {
 document.getElementById('loanAmount').addEventListener('input', function() {
     formatCurrency(this);
     if (document.getElementById('purchasePrice').value) {
+        console.log("loan amount event listener - input " );
         calculateMissingValue();
     }
 });
 
 document.getElementById('purchasePrice').addEventListener('input', function() {
     formatCurrency(this);
+    console.log("purchase price event listener - input " );
+
     calculateMissingValue();
 });
 
