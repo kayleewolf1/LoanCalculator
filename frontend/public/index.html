@@ -352,13 +352,7 @@
             return;
           }
           displayPricing();
-          // If valid, process and display results
-          const results = {
-            purchasePrice: purchasePrice,
-            fico: parseInt(values.fico),
-            propertyType: document.getElementById("propertyType").value,
-            state: values.state,
-          };
+          
 
           if (values.loanAmount) {
             results.loanAmount = parseFloat(
