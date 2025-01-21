@@ -9,6 +9,18 @@
   >n
   <body>
     <div class="container">
+      <div
+        id="errorBanner"
+        style="
+          display: none;
+          background-color: #ff4444;
+          color: white;
+          padding: 15px;
+          margin-bottom: 20px;
+          text-align: center;
+          font-weight: bold;
+        "
+      ></div>
       <h1>Loan Calculator</h1>
       <form id="loanForm">
         <div class="form-group">
@@ -278,13 +290,13 @@
       document
         .getElementById("loanForm")
         .addEventListener("submit", function (e) {
-          e.preventDefault();
-          let isValid = true;
+          e.preventDefault(); // Prevent default form submission
+          let isValid = true; // Flag to track validation
+          const errorBanner = document.getElementById("errorBanner"); // Error banner element
 
-          // Clear previous errors
-          document
-            .querySelectorAll(".error")
-            .forEach((error) => (error.textContent = ""));
+          // Clear the error banner and reset error messages
+          errorBanner.style.display = "none";
+          errorBanner.innerHTML = "";
 
           // Get form values
           const values = {
@@ -295,106 +307,106 @@
             state: document.getElementById("state").value,
           };
 
-          // Validate Purchase Price (required)
-          if (!values.purchasePrice) {
-            document.getElementById("purchasePriceError").textContent =
-              "Purchase price is required";
-            isValid = false;
-          }
+          const purchasePrice =
+            parseFloat(values.purchasePrice.replace(/,/g, "")) || 0;
+          const loanAmount =
+            parseFloat(values.loanAmount.replace(/,/g, "")) || 0;
 
-          // Validate that at least loan amount OR LTV is provided
-          if (!values.loanAmount && !values.ltv) {
-            document.getElementById("loanAmountError").textContent =
-              "Either Loan Amount or LTV is required";
-            document.getElementById("ltvError").textContent =
-              "Either Loan Amount or LTV is required";
+          // Validate inputs and set error messages
+          if (loanAmount > 806000) {
+            errorBanner.innerHTML = "Loan amount cannot exceed $806,000";
+            errorBanner.style.display = "block";
             isValid = false;
-          }
-
-          // Validate FICO
-          if (!values.fico) {
-            document.getElementById("ficoError").textContent =
-              "FICO score is required";
+          } else if (loanAmount > purchasePrice) {
+            errorBanner.innerHTML =
+              "Loan amount cannot be greater than purchase price";
+            errorBanner.style.display = "block";
+            isValid = false;
+          } else if (!values.purchasePrice) {
+            errorBanner.innerHTML = "Purchase price is required";
+            errorBanner.style.display = "block";
+            isValid = false;
+          } else if (!values.loanAmount && !values.ltv) {
+            errorBanner.innerHTML = "Either Loan Amount or LTV is required";
+            errorBanner.style.display = "block";
+            isValid = false;
+          } else if (!values.fico) {
+            errorBanner.innerHTML = "FICO score is required";
+            errorBanner.style.display = "block";
             isValid = false;
           } else if (
             parseInt(values.fico) < 300 ||
             parseInt(values.fico) > 850
           ) {
-            document.getElementById("ficoError").textContent =
-              "FICO score must be between 300 and 850";
+            errorBanner.innerHTML = "FICO score must be between 300 and 850";
+            errorBanner.style.display = "block";
+            isValid = false;
+          } else if (!values.state) {
+            errorBanner.innerHTML = "State is required";
+            errorBanner.style.display = "block";
             isValid = false;
           }
 
-          // Validate State
-          if (!values.state) {
-            document.getElementById("stateError").textContent =
-              "State is required";
-            isValid = false;
+          // If invalid, stop processing further
+          if (!isValid) {
+            return;
           }
+          displayPricing();
+          // If valid, process and display results
+          const results = {
+            purchasePrice: purchasePrice,
+            fico: parseInt(values.fico),
+            propertyType: document.getElementById("propertyType").value,
+            state: values.state,
+          };
 
-          if (isValid) {
-            const purchasePrice = parseFloat(
-              values.purchasePrice.replace(/,/g, "")
+          if (values.loanAmount) {
+            results.loanAmount = parseFloat(
+              values.loanAmount.replace(/,/g, "")
             );
-            const results = {
-              purchasePrice: purchasePrice,
-              fico: parseInt(values.fico),
-              propertyType: document.getElementById("propertyType").value,
-              state: values.state,
-            };
-
-            if (values.loanAmount) {
-              results.loanAmount = parseFloat(
-                values.loanAmount.replace(/,/g, "")
-              );
-            }
-            if (values.ltv) {
-              results.ltv = parseFloat(values.ltv);
-            }
-
-            // Calculate missing value if needed
-            if (!values.loanAmount && values.ltv) {
-              results.loanAmount =
-                purchasePrice * (parseFloat(values.ltv) / 100);
-            }
-            if (!values.ltv && values.loanAmount) {
-              results.ltv = (
-                (results.loanAmount / purchasePrice) *
-                100
-              ).toFixed(2);
-            }
-
-            // Display results
-            document.getElementById(
-              "resultLoanAmount"
-            ).textContent = `Loan Amount: $${results.loanAmount.toLocaleString()}`;
-            document.getElementById(
-              "resultPurchasePrice"
-            ).textContent = `Purchase Price: $${results.purchasePrice.toLocaleString()}`;
-            document.getElementById(
-              "resultLTV"
-            ).textContent = `LTV: ${results.ltv}%`;
-            document.getElementById(
-              "resultFICO"
-            ).textContent = `FICO Score: ${results.fico}`;
-            document.getElementById(
-              "resultPropertyType"
-            ).textContent = `Property Type: ${results.propertyType
-              .split("-")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ")}`;
-            document.getElementById(
-              "resultState"
-            ).textContent = `State: ${results.state}`;
-
-            // Show results section
-            document.getElementById("results").classList.add("show");
           }
+          if (values.ltv) {
+            results.ltv = parseFloat(values.ltv);
+          }
+
+          // Calculate missing value if needed
+          if (!values.loanAmount && values.ltv) {
+            results.loanAmount = purchasePrice * (parseFloat(values.ltv) / 100);
+          }
+          if (!values.ltv && values.loanAmount) {
+            results.ltv = ((results.loanAmount / purchasePrice) * 100).toFixed(
+              2
+            );
+          }
+
+        //   // Display results
+        //   document.getElementById(
+        //     "resultLoanAmount"
+        //   ).textContent = `Loan Amount: $${results.loanAmount.toLocaleString()}`;
+        //   document.getElementById(
+        //     "resultPurchasePrice"
+        //   ).textContent = `Purchase Price: $${results.purchasePrice.toLocaleString()}`;
+        //   document.getElementById(
+        //     "resultLTV"
+        //   ).textContent = `LTV: ${results.ltv}%`;
+        //   document.getElementById(
+        //     "resultFICO"
+        //   ).textContent = `FICO Score: ${results.fico}`;
+        //   document.getElementById(
+        //     "resultPropertyType"
+        //   ).textContent = `Property Type: ${results.propertyType
+        //     .split("-")
+        //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        //     .join(" ")}`;
+        //   document.getElementById(
+        //     "resultState"
+        //   ).textContent = `State: ${results.state}`;
+
+          // Show results section
+          document.getElementById("results").style.display = "block";
         });
 
-      document
-        .getElementById("submit")
-        .addEventListener("click", displayPricing);
+      
 
       async function displayMatchingLoans() {
         const loanTypeInput = document.getElementById("loanType");
@@ -505,6 +517,8 @@
       }
 
       async function displayPricing() {
+        console.log("Display Pricing called");
+
         const maxPrice = 100;
         const rateRange = 2;
         const loanProgram = "30-Year Fixed Rate";
