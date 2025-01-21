@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Loan Calculator</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head
-  >
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  </head>
   <body>
     <div class="container">
       <div
@@ -118,6 +118,8 @@
 
     <script type="module">
       import PricingService from "./pricingService.js";
+      import FicoLtvService from "./FicoLtvService.js";
+
       const loanProgram = "30-Year Fixed Rate";
       // Initialize the PricingService
       const pricingService = PricingService;
@@ -135,8 +137,22 @@
         }
       }
 
+      // Load the data
+      await FicoLtvService.loadLocalData();
+
+      // Get LLPA for specific FICO and LTV
+      const llpa = FicoLtvService.getLLPA(740, 80);
+
+      // Get available values
+      const ficoScores = FicoLtvService.getAvailableFICOScores();
+      const ltvValues = FicoLtvService.getAvailableLTVs();
+
       // Call the initialization function
       initializePricingService();
+
+      // printing fico/ltv data
+      console.log("fico/ltv data");
+      FicoLtvService.logData();
 
       // List of US states with full names
       const statesList = {
@@ -306,6 +322,26 @@
             state: document.getElementById("state").value,
           };
 
+          // Get LLPA right after getting the values
+          const llpaAdjustment = FicoLtvService.getLLPA(
+            parseInt(values.fico),
+            parseFloat(values.ltv)
+          );
+          if (llpaAdjustment === null) {
+            document.getElementById("errorBanner").style.display = "block";
+            document.getElementById("errorBanner").textContent =
+              "Could not calculate LLPA adjustment";
+            return;
+          }
+
+          if (!fico || !ltv) {
+            document.getElementById("errorBanner").style.display = "block";
+            document.getElementById("errorBanner").textContent =
+              "Please enter both FICO and LTV values";
+            return;
+          }
+
+          console.log("LLPA Adjustment:", llpaAdjustment);
           const purchasePrice =
             parseFloat(values.purchasePrice.replace(/,/g, "")) || 0;
           const loanAmount =
@@ -351,7 +387,6 @@
             return;
           }
           displayPricing();
-          
 
           if (values.loanAmount) {
             results.loanAmount = parseFloat(
@@ -372,33 +407,29 @@
             );
           }
 
-        //   // Display results
-        //   document.getElementById(
-        //     "resultLoanAmount"
-        //   ).textContent = `Loan Amount: $${results.loanAmount.toLocaleString()}`;
-        //   document.getElementById(
-        //     "resultPurchasePrice"
-        //   ).textContent = `Purchase Price: $${results.purchasePrice.toLocaleString()}`;
-        //   document.getElementById(
-        //     "resultLTV"
-        //   ).textContent = `LTV: ${results.ltv}%`;
-        //   document.getElementById(
-        //     "resultFICO"
-        //   ).textContent = `FICO Score: ${results.fico}`;
-        //   document.getElementById(
-        //     "resultPropertyType"
-        //   ).textContent = `Property Type: ${results.propertyType
-        //     .split("-")
-        //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        //     .join(" ")}`;
-        //   document.getElementById(
-        //     "resultState"
-        //   ).textContent = `State: ${results.state}`;
-
-          
+          //   // Display results
+          //   document.getElementById(
+          //     "resultLoanAmount"
+          //   ).textContent = `Loan Amount: $${results.loanAmount.toLocaleString()}`;
+          //   document.getElementById(
+          //     "resultPurchasePrice"
+          //   ).textContent = `Purchase Price: $${results.purchasePrice.toLocaleString()}`;
+          //   document.getElementById(
+          //     "resultLTV"
+          //   ).textContent = `LTV: ${results.ltv}%`;
+          //   document.getElementById(
+          //     "resultFICO"
+          //   ).textContent = `FICO Score: ${results.fico}`;
+          //   document.getElementById(
+          //     "resultPropertyType"
+          //   ).textContent = `Property Type: ${results.propertyType
+          //     .split("-")
+          //     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          //     .join(" ")}`;
+          //   document.getElementById(
+          //     "resultState"
+          //   ).textContent = `State: ${results.state}`;
         });
-
-      
 
       async function displayMatchingLoans() {
         const loanTypeInput = document.getElementById("loanType");
@@ -576,7 +607,6 @@
 
             function formatRate(rate) {
               const parsedRate = parseFloat(rate);
-              // Check if the rate is a whole number
               if (parsedRate % 1 === 0) {
                 return (parsedRate - 0.01).toFixed(3);
               }
@@ -584,28 +614,27 @@
             }
 
             let tableHTML = `
-    <div class="program-row" style="border: 1px solid black; padding: 8px; margin-bottom: 10px;">
-        <strong>Program:</strong> ${loanProgram}
-    </div>
-    <table style="border-collapse: collapse; width: 100%;">
-        <thead>
-            <tr>
-                <th style="border: 1px solid black; padding: 8px;" colspan="2">Rate</th>
-                <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6;" colspan="2">LO Price</th>
-                <th style="border: 1px solid black; padding: 8px; background-color: #e6e6e6;" colspan="3">Strike Price: 100</th>
-            </tr>
-            <tr>
-                <th style="border: 1px solid black; padding: 8px;">Program</th>
-                <th style="border: 1px solid black; padding: 8px;">Rate</th>
-                <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6;">15 Day</th>
-                <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6;">30 Day</th>
-                <th style="border: 1px solid black; padding: 8px;">Points</th>
-                <th style="border: 1px solid black; padding: 8px;">$ Cost</th>
-                <th style="border: 1px solid black; padding: 8px;">% of Purchase Price</th>
-            </tr>
-        </thead>
-        <tbody>
-`;
+        <div class="program-row" style="border: 1px solid black; padding: 8px; margin-bottom: 10px;">
+            <strong>Program:</strong> ${loanProgram}
+        </div>
+        <table style="border-collapse: collapse; width: 100%;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid black; padding: 8px;" colspan="1">Rate</th>
+                    <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6;" colspan="2">LO Price</th>
+                    <th style="border: 1px solid black; padding: 8px; background-color: #e6e6e6;" colspan="3">Strike Price: 100</th>
+                </tr>
+                <tr>
+                    <th style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">Rate</th>
+                    <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6; width: 16.66%; text-align: center;">15 Day</th>
+                    <th style="border: 1px solid black; padding: 8px; background-color: #ffb6b6; width: 16.66%; text-align: center;">30 Day</th>
+                    <th style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">% Cost</th>
+                    <th style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">$ Cost</th>
+                    <th style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">% of Purchase Price</th>
+                </tr>
+            </thead>
+            <tbody>
+      `;
 
             filteredLoans.forEach((loan) => {
               const price15Day = roundToNearestEighth(
@@ -621,44 +650,36 @@
                 : 0;
 
               tableHTML += `
-        <tr>
-            <td style="border: 1px solid black; padding: 8px;">${
-              loan.Product
-            }</td>
-            <td style="border: 1px solid black; padding: 8px;">${formatRate(
-              loan["Pass-Through Rate"]
-            )}</td>
-            <td style="border: 1px solid black; padding: 8px;">${price15Day.toFixed(
-              3
-            )}</td>
-            <td style="border: 1px solid black; padding: 8px;">${price30Day.toFixed(
-              3
-            )}</td>
-            <td style="border: 1px solid black; padding: 8px;">${percentCost}</td>
-            <td style="border: 1px solid black; padding: 8px;">$${dollarCost.toLocaleString()}</td>
-            <td style="border: 1px solid black; padding: 8px;">${percentOfPurchase}%</td>
-        </tr>
-    `;
+            <tr>
+                <td style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">${formatRate(
+                  loan["Pass-Through Rate"]
+                )}</td>
+                <td style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">${price15Day.toFixed(
+                  3
+                )}</td>
+                <td style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">${price30Day.toFixed(
+                  3
+                )}</td>
+                <td style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">${percentCost}</td>
+                <td style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">${dollarCost.toLocaleString()}</td>
+                <td style="border: 1px solid black; padding: 8px; width: 16.66%; text-align: center;">${percentOfPurchase}%</td>
+            </tr>
+        `;
             });
 
             tableHTML += `
-        </tbody>
-    </table>
-`;
-
-            tableHTML += `
-                    </tbody>
-                </table>
-                <div class="reference-info" style="margin-top: 20px; padding: 10px;">
-                    <p style="margin: 5px 0;">Loan Program: ${loanProgram}</p>
-                    <p style="margin: 5px 0;">Reference Rate: ${formatRate(
-                      referenceRate
-                    )}</p>
-                    <p style="margin: 5px 0;">Showing rates between: ${minRate.toFixed(
-                      3
-                    )} and ${formatRate(referenceRate)}</p>
-                </div>
-            `;
+            </tbody>
+        </table>
+        <div class="reference-info" style="margin-top: 20px; padding: 10px;">
+            <p style="margin: 5px 0;">Loan Program: ${loanProgram}</p>
+            <p style="margin: 5px 0;">Reference Rate: ${formatRate(
+              referenceRate
+            )}</p>
+            <p style="margin: 5px 0;">Showing rates between: ${minRate.toFixed(
+              3
+            )} and ${formatRate(referenceRate)}</p>
+        </div>
+      `;
 
             matchingLoanTypesDiv.innerHTML = tableHTML;
           } else {
